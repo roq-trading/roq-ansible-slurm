@@ -10,3 +10,6 @@ mariadb_defaults:
 slurm_defaults:
   user: root
   group: root
+  cluster: test
+  cpus: 4
+  partition: test
