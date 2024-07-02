@@ -1,0 +1,61 @@
+---
+- block:
+    - name: create directories
+      file:
+        path: '{{ item }}'
+        state: directory
+        owner: '{{ mariadb_config.user }}'
+        group: '{{ mariadb_config.group }}'
+        mode: 0755
+      with_items:
+        - /usr/local/etc/mariadb
+      notify:
+        - restart mariadb
+    - name: install config
+      template:
+        src: templates/{{ item }}
+        dest: /usr/local/etc/mariadb/{{ item }}
+        owner: '{{ mariadb_config.user }}'
+        group: '{{ mariadb_config.group }}'
+        mode: 0644
+      with_items:
+        - mariadb.conf
+      notify:
+        - restart mariadb
+    - name: pull image
+      containers.podman.podman_image:
+        name: '{{ mariadb_config.container.registry }}/{{ mariadb_config.container.name }}'
+        tag: '{{ mariadb_config.container.tag }}'
+        force: true
+      when: container_config.solution == 'podman'
+      notify:
+        - restart mariadb
+    - name: pull image
+      docker_image:
+        name: '{{ mariadb_config.container.registry }}/{{ mariadb_config.container.name }}'
+        tag: '{{ mariadb_config.container.tag }}'
+        source: pull
+      when: container_config.solution == 'docker'
+      notify:
+        - restart mariadb
+    - name: create systemd service
+      template:
+        src: templates/mariadb.service
+        dest: /etc/systemd/system/mariadb.service
+        owner: root
+        group: root
+        mode: 0644
+      register: mariadb_service
+      notify:
+        - restart mariadb
+    - name: enable the mariadb service
+      systemd:
+        name: mariadb.service
+        state: restarted
+        enabled: true
+        daemon_reload: true
+      when: mariadb_service.changed
+  when: become_user is defined
+  become: true
+  tags:
+    - mariadb

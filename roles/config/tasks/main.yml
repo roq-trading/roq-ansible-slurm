@@ -1,0 +1,14 @@
+---
+- block:
+    - name: create mariadb config
+      set_fact:
+        mariadb_config: >
+          {{ mariadb_defaults | combine(mariadb | default({}), recursive=True) }}
+        cacheable: true
+    - name: create slurm config
+      set_fact:
+        slurm_config: >
+          {{ slurm_defaults | combine(slurm | default({}), recursive=True) }}
+        cacheable: true
+  tags:
+    - always

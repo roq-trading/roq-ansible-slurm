@@ -1,0 +1,58 @@
+---
+- block:
+    - name: create directories
+      file:
+        path: '{{ item }}'
+        state: directory
+        mode: 0755
+      with_items:
+        - /usr/local/bin/slurm
+    - name: scripts
+      template:
+        src: templates/{{ item }}
+        dest: /usr/local/bin/slurm/{{ item }}
+        mode: 0755
+      with_items:
+        - prolog.sh
+        - epilog.sh
+        - build.sh
+    - name: install
+      apt:
+        name: '{{ item }}'
+      with_items:
+        - slurmd
+        - slurmctld
+        - slurmdbd
+    - name: slurmctld + slurmd config
+      template:
+        src: templates/{{ item }}
+        dest: /etc/slurm/{{ item }}
+        mode: 0644
+      with_items:
+        - slurm.conf
+      notify:
+        - restart slurm
+    - name: slurmdbd config
+      template:
+        src: templates/{{ item }}
+        dest: /etc/slurm/{{ item }}
+        mode: 0600
+        # user: slurm
+        # group: slurm
+      with_items:
+        - slurmdbd.conf
+      notify:
+        - restart slurmdbd
+    - name: enable services
+      systemd:
+        name: '{{ item }}'
+        state: restarted
+        enabled: true
+        daemon_reload: true
+      with_items:
+        - slurmd
+        - slurmctld
+        - slurmdbd
+  become: true
+  tags:
+    - slurm

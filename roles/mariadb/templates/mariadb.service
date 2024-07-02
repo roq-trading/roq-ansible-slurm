@@ -1,0 +1,36 @@
+# !!! THIS FILE HAS BEEN AUTO-GENERATED !!!
+
+[Unit]
+Description=mariadb
+Wants=network.target
+After=network-online.target
+
+[Service]
+TimeoutStartSec=0
+Restart=always
+UMask=0000
+User={{ mariadb_config.user }}
+Group={{ mariadb_config.group }}
+ExecStop=-/usr/bin/{{ container_config.solution }} stop %n
+ExecStartPre=-/usr/bin/{{ container_config.solution }} stop %n
+ExecStartPre=-/usr/bin/{{ container_config.solution }} rm %n
+ExecStartPre=+/bin/mkdir -p {{ roq_config.dirs.run }}/service
+ExecStartPre=+/bin/chown -R {{ roq_config.systemd.user }}:{{ roq_config.systemd.group }} {{ roq_config.dirs.run }}
+ExecStartPre=+/bin/chmod -R 0777 {{ roq_config.dirs.run }}
+ExecStart=/usr/bin/{{ container_config.solution }} run --rm --name %n -i \
+{% if container_config.solution == 'podman' %}
+  --cgroup-manager=cgroupfs \
+{% endif %}
+  --user 0 \
+  --env MARIADB_ROOT_PASSWORD=roq1234 \
+  --env MARIADB_USER=slurm \
+  --env MARIADB_PASSWORD=slurm1234 \
+  --env MARIADB_DATABASE=slurm_acct_db \
+  --publish 3306:{{ mariadb_config.port }} \
+  --network {{ container_config.network }} \
+  --volume /usr/local/etc/mariadb:/etc/mysql/conf.d:ro \
+  --volume /var/run/mysqld:/var/run/mysqld \
+  {{ mariadb_config.container.registry }}/{{ mariadb_config.container.name }}:{{ mariadb_config.container.tag }}
+
+[Install]
+WantedBy=multi-user.target

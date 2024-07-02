@@ -1,0 +1,12 @@
+---
+mariadb_defaults:
+  user: root
+  group: root
+  port: 3306
+  container:
+    name: library/mariadb
+    tag: latest
+    registry: docker.io
+slurm_defaults:
+  user: root
+  group: root
