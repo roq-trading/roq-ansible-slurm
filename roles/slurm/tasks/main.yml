@@ -28,6 +28,8 @@
         src: templates/{{ item }}
         dest: /etc/slurm/{{ item }}
         mode: 0644
+        owner: "{{ slurm_config.user }}"
+        group: "{{ slurm_config.group }}"
       with_items:
         - slurm.conf
       notify:
@@ -37,8 +39,8 @@
         src: templates/{{ item }}
         dest: /etc/slurm/{{ item }}
         mode: 0600
-        # user: slurm
-        # group: slurm
+        owner: "{{ slurm_config.user }}"
+        group: "{{ slurm_config.group }}"
       with_items:
         - slurmdbd.conf
       notify:

@@ -8,8 +8,8 @@ mariadb_defaults:
     tag: latest
     registry: docker.io
 slurm_defaults:
-  user: root
-  group: root
+  user: slurm
+  group: slurm
   cluster: test
   cpus: 4
   partition: test
