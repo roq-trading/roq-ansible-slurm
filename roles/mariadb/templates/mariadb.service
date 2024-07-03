@@ -30,6 +30,7 @@ ExecStart=/usr/bin/{{ container_config.solution }} run --rm --name %n -i \
   --network {{ container_config.network }} \
   --volume /usr/local/etc/mariadb:/etc/mysql/conf.d:ro \
   --volume /var/run/mysqld:/var/run/mysqld \
+  --volume /var/lib/mysql:/var/lib/mysql:Z \
   {{ mariadb_config.container.registry }}/{{ mariadb_config.container.name }}:{{ mariadb_config.container.tag }}
 
 [Install]

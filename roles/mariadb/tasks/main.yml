@@ -9,6 +9,7 @@
         mode: 0755
       with_items:
         - /usr/local/etc/mariadb
+        - /var/lib/mysql
       notify:
         - restart mariadb
     - name: install config
