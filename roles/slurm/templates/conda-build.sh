@@ -12,10 +12,6 @@ set -Eeuo pipefail
 
 env | sort
 
-if [[ -z $ROQ_ETC_DIR ]]; then
-  (>&2 echo -e "\033[1;31mERROR: Expected ROQ_ETC_DIR in the environment.\033[0m") && exit 1
-fi
-
 if [[ -z $ROQ_JOB_DIR ]]; then
   (>&2 echo -e "\033[1;31mERROR: Expected ROQ_JOB_DIR in the environment.\033[0m") && exit 1
 fi
@@ -28,8 +24,6 @@ if [[ -z $SLURM_CPUS_ON_NODE ]]; then
   (>&2 echo -e "\033[1;31mERROR: Expected SLURM_CPUS_ON_NODE in the environment.\033[0m") && exit 1
 fi
 
-export CPU_COUNT=$SLURM_CPUS_ON_NODE 
-
 # options
 
 if [[ -z $1 ]]; then
@@ -37,24 +31,41 @@ if [[ -z $1 ]]; then
 fi
 
 if [[ -z $2 ]]; then
-  (>&2 echo -e "\033[1;31mERROR: Expected second argument to be repo name'.\033[0m") && exit 1
+  (>&2 echo -e "\033[1;31mERROR: Expected second argument to be source repo name'.\033[0m") && exit 1
+fi
+
+if [[ -z $3 ]]; then
+  (>&2 echo -e "\033[1;31mERROR: Expected third argument to be config repo name'.\033[0m") && exit 1
 fi
 
 # useful variables
 
 BUILD_NUMBER="$1"
-REPO="$2"
-GIT_URL="$ROQ_GIT_URL/$REPO.git"
+SOURCE_REPO="$2"
+BUILD_CONFIG="$3"
+
+SOURCE_URL="$ROQ_GIT_URL/$SOURCE_REPO.git"
+
 SOURCE_DIR="$ROQ_JOB_DIR/source"
+CONFIG_DIR="$ROQ_JOB_DIR/config"
+
 CONDA_DIR="$ROQ_JOB_DIR/opt/conda"
 CONDA_BLD_DIR="$CONDA_DIR/conda-bld"
+
+ACTIVATE="$CONDA_DIR/bin/activate"
 CONDA="$CONDA_DIR/bin/conda"
+CONDA_BUILD="conda-build"
+
 OUTPUT_DIR="$ROQ_OUT_DIR/conda/$BUILD_NUMBER"
+
 RSYNC="rsync"
 GIT="git"
 
+VARIANT_CONFIG_FILE="$CONFIG_DIR/build_config.yaml"
+
 # exported variables
 
+export CPU_COUNT=$SLURM_CPUS_ON_NODE 
 export ROQ_BUILD_NUMBER="$BUILD_NUMBER"
 export ROQ_BUILD_TYPE="Release"
 
@@ -114,11 +125,15 @@ $CONDA index $CONDA_BLD_DIR
 
 echo -e "\033[1;34mFetch source...\033[0m"
 
-$GIT clone $GIT_URL $SOURCE_DIR
+$GIT clone $SOURCE_URL $SOURCE_DIR
+
+echo -e "\033[1;34mFetch build config...\033[0m"
+
+$GIT clone $CONFIG_URL $CONFIG_DIR
 
 echo -e "\033[1;34mBuild and package...\033[0m"
 
-(source $CONDA_DIR/bin/activate base && cd $SOURCE_DIR/conda && conda-build --no-anaconda-upload --no-force-upload --prefix-length=200 --variant-config-file $ROQ_ETC_DIR/build_config.yaml --override-channels --channel conda-forge .)
+(source $ACTIVATE base && cd $SOURCE_DIR/conda && $CONDA_BUILD --no-anaconda-upload --no-force-upload --variant-config-file $VARIANT_CONFIG_FILE --override-channels --channel conda-forge .)
 
 echo -e "\033[1;34mSync output...\033[0m"
 
@@ -134,7 +149,7 @@ $RSYNC \
   --exclude="*.json*" \
   --exclude="*/.*" \
   --include="*/" \
-  --include="$REPO*.tar.bz2" \
+  --include="$SOURCE_REPO*.tar.bz2" \
   $CONDA_BLD_DIR/ \
   $OUTPUT_DIR/
 

@@ -6,7 +6,7 @@
         state: directory
         mode: 0755
       with_items:
-        - /usr/local/bin/slurm
+        - "{{ slurm_config.script_dir }}"
     - name: scripts
       template:
         src: templates/{{ item }}
@@ -15,7 +15,8 @@
       with_items:
         - prolog.sh
         - epilog.sh
-        - build.sh
+        - conda-build.sh
+        - conda-upload.sh
     - name: install
       apt:
         name: '{{ item }}'

@@ -24,8 +24,10 @@ fi
 
 BUILD_NUMBER="$1"
 CHANNEL="$2"
+
 OUTPUT_DIR="$ROQ_OUT_DIR/conda/$BUILD_NUMBER"
 TARGET_DIR="/home/thraneh/tmp/upload/conda/$CHANNEL"
+
 RSYNC="rsync"
 GIT="git"
 
