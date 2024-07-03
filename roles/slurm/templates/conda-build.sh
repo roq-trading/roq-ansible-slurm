@@ -12,12 +12,12 @@ set -Eeuo pipefail
 
 env | sort
 
-if [[ -z $ROQ_JOB_DIR ]]; then
-  (>&2 echo -e "\033[1;31mERROR: Expected ROQ_JOB_DIR in the environment.\033[0m") && exit 1
+if [[ -z $ROQ_WORK_DIR ]]; then
+  (>&2 echo -e "\033[1;31mERROR: Expected ROQ_WORK_DIR in the environment.\033[0m") && exit 1
 fi
 
-if [[ -z $ROQ_OUT_DIR ]]; then
-  (>&2 echo -e "\033[1;31mERROR: Expected ROQ_OUT_DIR in the environment.\033[0m") && exit 1
+if [[ -z $ROQ_OUTPUT_DIR ]]; then
+  (>&2 echo -e "\033[1;31mERROR: Expected ROQ_OUTPUT_DIR in the environment.\033[0m") && exit 1
 fi
 
 if [[ -z $SLURM_CPUS_ON_NODE ]]; then
@@ -45,19 +45,19 @@ SOURCE_REPO="$2"
 CONFIG_REPO="$3"
 
 SOURCE_URL="$ROQ_GIT_URL/$SOURCE_REPO.git"
-SOURCE_DIR="$ROQ_JOB_DIR/source"
+SOURCE_DIR="$ROQ_WORK_DIR/source"
 
 CONFIG_URL="$ROQ_GIT_URL/$CONFIG_REPO.git"
-CONFIG_DIR="$ROQ_JOB_DIR/config"
+CONFIG_DIR="$ROQ_WORK_DIR/config"
 
-CONDA_DIR="$ROQ_JOB_DIR/opt/conda"
+CONDA_DIR="$ROQ_WORK_DIR/opt/conda"
 CONDA_BLD_DIR="$CONDA_DIR/conda-bld"
 
 ACTIVATE="$CONDA_DIR/bin/activate"
 CONDA="$CONDA_DIR/bin/conda"
 CONDA_BUILD="conda-build"
 
-OUTPUT_DIR="$ROQ_OUT_DIR/conda/$BUILD_NUMBER"
+OUTPUT_DIR="$ROQ_OUTPUT_DIR/$BUILD_NUMBER"
 
 RSYNC="rsync"
 GIT="git"
@@ -104,9 +104,9 @@ if [[ ! -d $CONDA_DIR ]]; then
   bash $CONDA_INSTALLER -b -p $CONDA_DIR
 fi
 
-$CONDA install --yes conda-build
+$CONDA install --yes --quiet conda-build
 
-$CONDA update --yes --name base --channel conda-forge conda-build
+$CONDA update --yes --quiet --name base --channel conda-forge conda-build
 
 echo -e "\033[1;34mPrepare local cache...\033[0m"
 
@@ -134,7 +134,7 @@ $GIT clone $CONFIG_URL $CONFIG_DIR
 
 echo -e "\033[1;34mBuild and package...\033[0m"
 
-(source $ACTIVATE base && cd $SOURCE_DIR/conda && $CONDA_BUILD --no-anaconda-upload --no-force-upload --variant-config-file $VARIANT_CONFIG_FILE --override-channels --channel conda-forge .)
+(source $ACTIVATE base && cd $SOURCE_DIR/conda && $CONDA_BUILD --quiet --no-anaconda-upload --no-force-upload --variant-config-file $VARIANT_CONFIG_FILE --override-channels --channel conda-forge .)
 
 echo -e "\033[1;34mSync output...\033[0m"
 

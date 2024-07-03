@@ -25,8 +25,8 @@ fi
 BUILD_NUMBER="$1"
 CHANNEL="$2"
 
-OUTPUT_DIR="$ROQ_OUT_DIR/conda/$BUILD_NUMBER"
-TARGET_DIR="/home/thraneh/tmp/upload/conda/$CHANNEL"
+OUTPUT_DIR="$ROQ_OUTPUT_DIR/$BUILD_NUMBER"
+TARGET_DIR="{{ slurm_config.upload_dir }}/$CHANNEL"
 
 RSYNC="rsync"
 GIT="git"
