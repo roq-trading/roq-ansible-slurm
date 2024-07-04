@@ -6,7 +6,7 @@
         state: directory
         mode: 0755
       with_items:
-        - "{{ slurm_config.script_dir }}"
+        - '{{ slurm_config.script_dir }}'
     - name: scripts
       template:
         src: templates/{{ item }}
@@ -29,8 +29,8 @@
         src: templates/{{ item }}
         dest: /etc/slurm/{{ item }}
         mode: 0644
-        owner: "{{ slurm_config.user }}"
-        group: "{{ slurm_config.group }}"
+        owner: '{{ slurm_config.user }}'
+        group: '{{ slurm_config.group }}'
       with_items:
         - slurm.conf
       notify:
@@ -40,8 +40,8 @@
         src: templates/{{ item }}
         dest: /etc/slurm/{{ item }}
         mode: 0600
-        owner: "{{ slurm_config.user }}"
-        group: "{{ slurm_config.group }}"
+        owner: '{{ slurm_config.user }}'
+        group: '{{ slurm_config.group }}'
       with_items:
         - slurmdbd.conf
       notify:
