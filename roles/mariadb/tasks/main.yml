@@ -36,6 +36,7 @@
         name: '{{ mariadb_config.container.registry }}/{{ mariadb_config.container.name }}'
         tag: '{{ mariadb_config.container.tag }}'
         source: pull
+        force_source: true
       when: container_config.solution == 'docker'
       notify:
         - restart mariadb
